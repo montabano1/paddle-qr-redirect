@@ -98,33 +98,60 @@
                 return;
             }
             
-            // Try to open the app first
+            // Use the visibility API to detect if the page becomes hidden (app opened)
+            var hidden, visibilityChange;
+            if (typeof document.hidden !== "undefined") {
+                hidden = "hidden";
+                visibilityChange = "visibilitychange";
+            } else if (typeof document.msHidden !== "undefined") {
+                hidden = "msHidden";
+                visibilityChange = "msvisibilitychange";
+            } else if (typeof document.webkitHidden !== "undefined") {
+                hidden = "webkitHidden";
+                visibilityChange = "webkitvisibilitychange";
+            }
+
+            var appOpened = false;
+            
+            // Listen for visibility changes
+            document.addEventListener(visibilityChange, function() {
+                if (document[hidden]) {
+                    // Page is hidden, likely because app opened
+                    appOpened = true;
+                    console.log('App appears to have opened');
+                }
+            }, false);
+            
+            // Try to open the app
             var appUrl = 'paddlescreens://scan?data=' + encodeURIComponent(paddleString);
             window.location.href = appUrl;
             
-            // If the app doesn't open within 2 seconds, redirect to App Store
-            // This works because if the app opens, this page will be in the background and this timer won't matter
+            // If the app doesn't open within 2.5 seconds, redirect to App Store
             setTimeout(function() {
-                // Show the button as a fallback
-                appStoreLinkElement.style.display = 'inline-block';
-                document.querySelector('p').textContent = 'PaddleScreens app not installed. Redirecting to App Store...';
-                
-                // Try to redirect to App Store
-                try {
-                    window.location = appStoreUrl;
-                } catch (e) {
-                    console.error('Failed to redirect:', e);
-                }
-                
-                // Fallback - try again after a short delay with a different method
-                setTimeout(function() {
+                if (!appOpened) {
+                    // App wasn't opened, redirect to App Store
+                    appStoreLinkElement.style.display = 'inline-block';
+                    document.querySelector('p').textContent = 'PaddleScreens app not installed. Redirecting to App Store...';
+                    
+                    // Try to redirect to App Store
                     try {
-                        window.open(appStoreUrl, '_top');
+                        window.location = appStoreUrl;
                     } catch (e) {
-                        console.error('Failed to redirect again:', e);
+                        console.error('Failed to redirect:', e);
                     }
-                }, 1000);
-            }, 2000);
+                    
+                    // Fallback - try again after a short delay with a different method
+                    setTimeout(function() {
+                        if (!appOpened) {
+                            try {
+                                window.open(appStoreUrl, '_top');
+                            } catch (e) {
+                                console.error('Failed to redirect again:', e);
+                            }
+                        }
+                    }, 1000);
+                }
+            }, 2500);
         });
     </script>
 </body>
