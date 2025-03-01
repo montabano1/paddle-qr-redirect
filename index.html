@@ -59,6 +59,7 @@
         <h1>PaddleScreens</h1>
         <p>You've scanned a PaddleScreens QR code. Redirecting you to the appropriate destination...</p>
         <div class="loader" style="margin: 20px auto; border: 5px solid #f3f3f3; border-top: 5px solid #007bff; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;"></div>
+        <a href="" id="appStoreLink" class="btn" style="display: none; margin-top: 20px;">Download from App Store</a>
         <style>
             @keyframes spin {
                 0% { transform: rotate(0deg); }
@@ -85,11 +86,15 @@
             var appStoreUrl = getParameterByName('appstore') || 'https://apps.apple.com/app/6742572918';
             
             // Set the App Store link
-            document.getElementById('appStoreLink').href = appStoreUrl;
+            var appStoreLinkElement = document.getElementById('appStoreLink');
+            appStoreLinkElement.href = appStoreUrl;
             
             // Validate the paddle string
             if (!paddleString || !paddleString.startsWith('PaddleScreens-')) {
                 console.log('Invalid QR code data');
+                document.querySelector('p').textContent = 'Invalid QR code. Please scan a valid PaddleScreens QR code.';
+                document.querySelector('.loader').style.display = 'none';
+                appStoreLinkElement.style.display = 'inline-block';
                 return;
             }
             
@@ -97,11 +102,29 @@
             var appUrl = 'paddlescreens://scan?data=' + encodeURIComponent(paddleString);
             window.location.href = appUrl;
             
-            // If the app doesn't open within 1.5 seconds, redirect to App Store
+            // If the app doesn't open within 2 seconds, redirect to App Store
             // This works because if the app opens, this page will be in the background and this timer won't matter
             setTimeout(function() {
-                window.location.href = appStoreUrl;
-            }, 1500);
+                // Show the button as a fallback
+                appStoreLinkElement.style.display = 'inline-block';
+                document.querySelector('p').textContent = 'PaddleScreens app not installed. Redirecting to App Store...';
+                
+                // Try to redirect to App Store
+                try {
+                    window.location = appStoreUrl;
+                } catch (e) {
+                    console.error('Failed to redirect:', e);
+                }
+                
+                // Fallback - try again after a short delay with a different method
+                setTimeout(function() {
+                    try {
+                        window.open(appStoreUrl, '_top');
+                    } catch (e) {
+                        console.error('Failed to redirect again:', e);
+                    }
+                }, 1000);
+            }, 2000);
         });
     </script>
 </body>
