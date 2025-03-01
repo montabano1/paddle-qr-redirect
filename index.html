@@ -55,7 +55,7 @@
 </head>
 <body>
     <div class="container">
-        <img src="https://via.placeholder.com/150" alt="PaddleScreens Logo" class="logo">
+        <img src="logo.png" alt="PaddleScreens Logo" class="logo">
         <h1>PaddleScreens</h1>
         <p>You've scanned a PaddleScreens QR code. To use this feature, you need to have the PaddleScreens app installed.</p>
         <a href="" id="appStoreLink" class="btn">Download from App Store</a>
@@ -81,31 +81,15 @@
             // Set the App Store link
             document.getElementById('appStoreLink').href = appStoreUrl;
             
-            // Add status message element
-            var statusElement = document.createElement('p');
-            statusElement.id = 'status';
-            statusElement.style.fontSize = '14px';
-            statusElement.style.color = '#999';
-            document.querySelector('.container').appendChild(statusElement);
-            
             // Validate the paddle string
             if (!paddleString || !paddleString.startsWith('PaddleScreens-')) {
-                statusElement.textContent = 'Invalid QR code data. Please scan a valid PaddleScreens QR code.';
-                statusElement.style.color = '#dc3545';
+                console.log('Invalid QR code data');
                 return;
             }
-            
-            // Show attempting to open app message
-            statusElement.textContent = 'Attempting to open PaddleScreens app...';
             
             // Try to open the app first
             var appUrl = 'paddlescreens://scan?data=' + encodeURIComponent(paddleString);
             window.location.href = appUrl;
-            
-            // If the app doesn't open within 2 seconds, update the message
-            setTimeout(function() {
-                statusElement.textContent = 'PaddleScreens app not installed. Please download from the App Store.';
-            }, 2000);
         });
     </script>
 </body>
