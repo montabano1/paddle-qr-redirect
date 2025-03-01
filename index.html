@@ -59,7 +59,7 @@
         <h1>PaddleScreens</h1>
         <p>You've scanned a PaddleScreens QR code. Redirecting you to the appropriate destination...</p>
         <div class="loader" style="margin: 20px auto; border: 5px solid #f3f3f3; border-top: 5px solid #007bff; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;"></div>
-        <a href="" id="appStoreLink" class="btn" style="display: none; margin-top: 20px;">Download from App Store</a>
+        <a href="" id="appStoreLink" class="btn" style="display: none; margin-top: 20px;">Download iOS App</a>
         <style>
             @keyframes spin {
                 0% { transform: rotate(0deg); }
@@ -136,30 +136,13 @@
                 document.body.removeChild(iframe);
             }, 100);
             
-            // If the app doesn't open within 2.5 seconds, redirect to App Store
+            // If the app doesn't open within 2.5 seconds, show the App Store button
             setTimeout(function() {
                 if (!appOpened) {
-                    // App wasn't opened, redirect to App Store
+                    // App wasn't opened, show the App Store button
                     appStoreLinkElement.style.display = 'inline-block';
-                    document.querySelector('p').textContent = 'PaddleScreens app not installed. Redirecting to App Store...';
-                    
-                    // Try to redirect to App Store
-                    try {
-                        window.location = appStoreUrl;
-                    } catch (e) {
-                        console.error('Failed to redirect:', e);
-                    }
-                    
-                    // Fallback - try again after a short delay with a different method
-                    setTimeout(function() {
-                        if (!appOpened) {
-                            try {
-                                window.open(appStoreUrl, '_top');
-                            } catch (e) {
-                                console.error('Failed to redirect again:', e);
-                            }
-                        }
-                    }, 1000);
+                    document.querySelector('p').textContent = 'PaddleScreens iOS app not installed. Download it from the App Store.';
+                    document.querySelector('.loader').style.display = 'none';
                 }
             }, 2500);
         });
