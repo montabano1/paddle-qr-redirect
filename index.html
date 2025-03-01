@@ -57,8 +57,14 @@
     <div class="container">
         <img src="logo.png" alt="PaddleScreens Logo" class="logo">
         <h1>PaddleScreens</h1>
-        <p>You've scanned a PaddleScreens QR code. To use this feature, you need to have the PaddleScreens app installed.</p>
-        <a href="" id="appStoreLink" class="btn">Download from App Store</a>
+        <p>You've scanned a PaddleScreens QR code. Redirecting you to the appropriate destination...</p>
+        <div class="loader" style="margin: 20px auto; border: 5px solid #f3f3f3; border-top: 5px solid #007bff; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;"></div>
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
     </div>
 
     <script>
@@ -90,6 +96,12 @@
             // Try to open the app first
             var appUrl = 'paddlescreens://scan?data=' + encodeURIComponent(paddleString);
             window.location.href = appUrl;
+            
+            // If the app doesn't open within 1.5 seconds, redirect to App Store
+            // This works because if the app opens, this page will be in the background and this timer won't matter
+            setTimeout(function() {
+                window.location.href = appStoreUrl;
+            }, 1500);
         });
     </script>
 </body>
