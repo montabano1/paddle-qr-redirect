@@ -122,18 +122,21 @@
                 }
             }, false);
             
-            // Try to open the app using iframe method to avoid the error message
+            // Try multiple methods to open the app
             var appUrl = 'paddlescreens://scan?data=' + encodeURIComponent(paddleString);
             
-            // Create an invisible iframe to attempt opening the app
-            var iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = appUrl;
-            document.body.appendChild(iframe);
+            // Method 1: Direct location change
+            window.location.href = appUrl;
             
-            // Remove the iframe after a short delay
+            // Method 2: After a tiny delay, try with window.open
             setTimeout(function() {
-                document.body.removeChild(iframe);
+                if (!appOpened) {
+                    try {
+                        window.open(appUrl, '_top');
+                    } catch(e) {
+                        console.error('Failed to open app with method 2:', e);
+                    }
+                }
             }, 100);
             
             // If the app doesn't open within 2.5 seconds, show the App Store button
