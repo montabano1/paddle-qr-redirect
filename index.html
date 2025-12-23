@@ -15,57 +15,91 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f8f9fa;
+            background-color: #030712;
         }
         .logo {
-            max-width: 150px;
+            max-width: 120px;
             margin-bottom: 20px;
+            border-radius: 24px;
         }
         .container {
-            max-width: 600px;
-            background-color: white;
-            border-radius: 10px;
+            max-width: 400px;
+            background-color: #111827;
+            border-radius: 16px;
             padding: 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
         h1 {
-            color: #333;
-            margin-bottom: 20px;
+            color: #fff;
+            margin-bottom: 10px;
         }
         p {
-            color: #666;
+            color: #9ca3af;
             line-height: 1.6;
             margin-bottom: 25px;
         }
         .btn {
-            display: inline-block;
-            background-color: #007bff;
-            color: white;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
             text-decoration: none;
-            padding: 12px 30px;
-            border-radius: 50px;
+            padding: 16px 30px;
+            border-radius: 12px;
             font-weight: bold;
-            margin-top: 10px;
-            transition: background-color 0.3s;
+            margin-top: 12px;
+            transition: opacity 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
         }
         .btn:hover {
-            background-color: #0056b3;
+            opacity: 0.9;
+        }
+        .btn-primary {
+            background: linear-gradient(to right, #9333ea, #ec4899);
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #374151;
+            color: white;
+        }
+        .loading {
+            color: #9ca3af;
+            margin-top: 20px;
+        }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #9333ea;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <img src="logo.png" alt="PaddleScreens Logo" class="logo">
+        <img src="https://paddlescreens.com/icon.png" alt="PaddleScreens Logo" class="logo">
         <h1>PaddleScreens</h1>
-        <p>You've scanned a PaddleScreens QR code. Redirecting you to the appropriate destination...</p>
-        <div class="loader" style="margin: 20px auto; border: 5px solid #f3f3f3; border-top: 5px solid #007bff; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;"></div>
-        <a href="" id="appStoreLink" class="btn" style="display: none; margin-top: 20px;">Download iOS App</a>
-        <style>
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-        </style>
+
+        <div id="loadingState">
+            <p class="loading"><span class="spinner"></span>Opening app...</p>
+        </div>
+
+        <div id="choiceState" class="hidden">
+            <p>You scanned a PaddleScreens QR code. How would you like to continue?</p>
+            <a href="" id="appStoreLink" class="btn btn-primary">Download iOS App</a>
+            <a href="" id="webLink" class="btn btn-secondary">Continue on Web</a>
+        </div>
     </div>
 
     <script>
@@ -79,75 +113,41 @@
             return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
 
+        // Detect iOS
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
         // When the page loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Get the parameters from the URL
             var paddleString = getParameterByName('data');
-            var appStoreUrl = getParameterByName('appstore') || 'https://apps.apple.com/app/6742572918';
-            
-            // Set the App Store link
-            var appStoreLinkElement = document.getElementById('appStoreLink');
-            appStoreLinkElement.href = appStoreUrl;
-            
-            // Validate the paddle string
-            if (!paddleString || !paddleString.startsWith('PaddleScreens-')) {
-                console.log('Invalid QR code data');
-                document.querySelector('p').textContent = 'Invalid QR code. Please scan a valid PaddleScreens QR code.';
-                document.querySelector('.loader').style.display = 'none';
-                appStoreLinkElement.style.display = 'inline-block';
-                return;
-            }
-            
-            // Use the visibility API to detect if the page becomes hidden (app opened)
-            var hidden, visibilityChange;
-            if (typeof document.hidden !== "undefined") {
-                hidden = "hidden";
-                visibilityChange = "visibilitychange";
-            } else if (typeof document.msHidden !== "undefined") {
-                hidden = "msHidden";
-                visibilityChange = "msvisibilitychange";
-            } else if (typeof document.webkitHidden !== "undefined") {
-                hidden = "webkitHidden";
-                visibilityChange = "webkitvisibilitychange";
+            var appStoreUrl = 'https://apps.apple.com/app/6742572918';
+
+            // Build the web URL - redirect to paddlescreens.com
+            var webUrl = 'https://paddlescreens.com';
+            if (paddleString) {
+                webUrl = 'https://paddlescreens.com/start?data=' + encodeURIComponent(paddleString);
             }
 
-            var appOpened = false;
-            
-            // Listen for visibility changes
-            document.addEventListener(visibilityChange, function() {
-                if (document[hidden]) {
-                    // Page is hidden, likely because app opened
-                    appOpened = true;
-                    console.log('App appears to have opened');
-                }
-            }, false);
-            
-            // Try multiple methods to open the app
-            var appUrl = 'paddlescreens://scan?data=' + encodeURIComponent(paddleString);
-            
-            // Method 1: Direct location change
-            window.location.href = appUrl;
-            
-            // Method 2: After a tiny delay, try with window.open
-            setTimeout(function() {
-                if (!appOpened) {
-                    try {
-                        window.open(appUrl, '_top');
-                    } catch(e) {
-                        console.error('Failed to open app with method 2:', e);
-                    }
-                }
-            }, 100);
-            
-            // If the app doesn't open within 2.5 seconds, show the App Store button
-            setTimeout(function() {
-                if (!appOpened) {
-                    // App wasn't opened, show the App Store button
-                    appStoreLinkElement.style.display = 'inline-block';
-                    document.querySelector('p').textContent = 'PaddleScreens iOS app not installed. Download it from the App Store.';
-                    document.querySelector('.loader').style.display = 'none';
-                }
-            }, 2500);
+            // Set up links
+            document.getElementById('appStoreLink').href = appStoreUrl;
+            document.getElementById('webLink').href = webUrl;
+
+            // If on iOS, try to open the app first
+            if (isIOS() && paddleString) {
+                var appUrl = 'paddlescreens://scan?data=' + encodeURIComponent(paddleString);
+                window.location.href = appUrl;
+
+                // After delay, show choice UI (app didn't open)
+                setTimeout(function() {
+                    document.getElementById('loadingState').classList.add('hidden');
+                    document.getElementById('choiceState').classList.remove('hidden');
+                }, 1500);
+            } else {
+                // Not iOS - redirect directly to web
+                window.location.href = webUrl;
+            }
         });
     </script>
 </body>
